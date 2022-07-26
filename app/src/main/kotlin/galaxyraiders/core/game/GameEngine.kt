@@ -87,8 +87,11 @@ class GameEngine(
   fun handleCollisions() {
     this.field.spaceObjects.forEachPair {
         (first, second) ->
-      if (first.impacts(second)) {
+      if (first.impacts(second) && first.type != "Explosion" && second.type != "Explosion") {
         first.collideWith(second, GameEngineConfig.coefficientRestitution)
+        this.field.generateExplosion(first.center)
+        print("colidiu ${first.type} com ${second.type}\n")
+        this.field.spaceObjects = this.field.spaceObjects.filter{it != first && it != second}
       }
     }
   }
@@ -102,6 +105,8 @@ class GameEngine(
   fun trimSpaceObjects() {
     this.field.trimAsteroids()
     this.field.trimMissiles()
+    this.field.trimExplosions()
+    this.field.updateExplosions()
   }
 
   fun generateAsteroids() {

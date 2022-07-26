@@ -23,6 +23,8 @@ object SpaceFieldConfig {
   val asteroidMinMass = config.get<Int>("ASTEROID_MIN_MASS")
   val asteroidMaxMass = config.get<Int>("ASTEROID_MAX_MASS")
   val asteroidMassMultiplier = config.get<Double>("ASTEROID_MASS_MULTIPLIER")
+
+  val explosionDuration = config.get<Int>("EXPLOSION_DURATION")
 }
 
 @Suppress("TooManyFunctions")
@@ -38,8 +40,11 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
   var asteroids: List<Asteroid> = emptyList()
     private set
 
-  val spaceObjects: List<SpaceObject>
-    get() = listOf(this.ship) + this.missiles + this.asteroids
+  var explosions: List<Explosion> = emptyList()
+    private set
+
+  var spaceObjects: List<SpaceObject> = emptyList()
+    get() = listOf(this.ship) + this.missiles + this.asteroids + this.explosions
 
   fun moveShip() {
     this.ship.move(boundaryX, boundaryY)
@@ -61,6 +66,10 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
     this.asteroids += this.createAsteroidWithRandomProperties()
   }
 
+  fun generateExplosion(position: Point2D) {
+    this.explosions += this.createExplosion(position)
+  }
+
   fun trimMissiles() {
     this.missiles = this.missiles.filter {
       it.inBoundaries(this.boundaryX, this.boundaryY)
@@ -71,6 +80,16 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
     this.asteroids = this.asteroids.filter {
       it.inBoundaries(this.boundaryX, this.boundaryY)
     }
+  }
+
+  fun trimExplosions() {
+    this.explosions = this.explosions.filter {
+      it.inBoundaries(this.boundaryX, this.boundaryY) && (it.duration < SpaceFieldConfig.explosionDuration)
+    }
+  }
+
+  fun updateExplosions() {
+    this.explosions.forEach{it -> it.duration = it.duration + 1}
   }
 
   private fun initializeShip(): SpaceShip {
@@ -105,6 +124,14 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
 
   private fun defineMissileVelocity(): Vector2D {
     return Vector2D(dx = 0.0, dy = 1.0)
+  }
+
+  private fun createExplosion(position: Point2D): Explosion {
+    return Explosion(
+      is_triggered = false,
+      position = position,
+      duration = 0
+    )
   }
 
   private fun createAsteroidWithRandomProperties(): Asteroid {
