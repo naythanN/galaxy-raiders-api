@@ -10,26 +10,26 @@ import java.util.LinkedList
 import java.util.Queue
 
 class SpaceShipRouter : Router, Controller {
-  var playerCommands: Queue<Controller.PlayerCommand> =
-    LinkedList<Controller.PlayerCommand>()
+    var playerCommands: Queue<Controller.PlayerCommand> =
+        LinkedList<Controller.PlayerCommand>()
 
-  override val path = "/ship"
+    override val path = "/ship"
 
-  override val endpoints = EndpointGroup {
-    post("/commands", ::postPlayerCommand)
-  }
+    override val endpoints = EndpointGroup {
+        post("/commands", ::postPlayerCommand)
+    }
 
-  private fun postPlayerCommand(ctx: Context) {
-    data class PlayerCommandRequest(val command: PlayerCommand)
+    private fun postPlayerCommand(ctx: Context) {
+        data class PlayerCommandRequest(val command: PlayerCommand)
 
-    val request = ctx.bodyAsClass<PlayerCommandRequest>()
+        val request = ctx.bodyAsClass<PlayerCommandRequest>()
 
-    playerCommands.add(request.command)
-    ctx.status(HttpCode.OK)
-  }
+        playerCommands.add(request.command)
+        ctx.status(HttpCode.OK)
+    }
 
-  override fun nextPlayerCommand(): Controller.PlayerCommand? {
-    if (playerCommands.isEmpty()) return null
-    return playerCommands.remove()
-  }
+    override fun nextPlayerCommand(): Controller.PlayerCommand? {
+        if (playerCommands.isEmpty()) return null
+        return playerCommands.remove()
+    }
 }
